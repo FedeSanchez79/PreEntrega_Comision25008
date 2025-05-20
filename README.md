@@ -11,6 +11,8 @@ Se trata de una aplicación en Python que permite:
 
 - Agregar productos de distintas categorías.
 - Mostrar los productos ingresados por el usuario.
+- Buscar los productos.
+- Eliminarlos.
 
 Los productos pueden pertenecer a distintas categorías del mundo Star Wars, tales como:
 
