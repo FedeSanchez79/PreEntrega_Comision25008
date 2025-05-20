@@ -19,7 +19,12 @@ Los productos pueden pertenecer a distintas categorías del mundo Star Wars, tal
 - 📚 Cómics
 - 🧸 Coleccionables
 - ⚔️ Sables de luz
-- 🎨 Fanart
+
+A continuacion dejamos un link a un listado de productos para agregar 
+
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/excel/excel-original.svg" alt="Excel Icon" width="40" height="40"/>
+
+https://docs.google.com/spreadsheets/d/1ErjYPJ7fypsEO1Q6XW7FDTRThQGgQAl9/edit?usp=drive_link&ouid=103177774531545997732&rtpof=true&sd=true
 
 ---
 
