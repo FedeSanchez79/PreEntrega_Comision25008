@@ -43,7 +43,7 @@ while True:
                     precio_producto = int(input("Ingrese su precio sin centavos: "))
                     if precio_producto == "":
                         print("Debe agregar un precio sin centavos.")
-                    elif not precio_producto.isdigit():
+                    elif not precio_producto:
                         print("Debe ingresar solo números enteros positivos (sin centavos, letras o símbolos).")
                     else:
                         precio_producto = int(precio_producto)
@@ -99,18 +99,20 @@ while True:
                 print("Producto no encontrado.")
             print(nueva_busqueda)
         case 4:
+            # muestro los productos ingresados
+            for i in range(len(productos)):
+                producto = productos[i]
+                print(f"{i+1}. Nombre: {producto['nombre'].upper()}, Categoría: {producto['categoria'].upper()}, Precio: {producto['precio']}")
             # creo una variable para acceder al nombre del producto a eliminar
-            nombre_eliminar = input("Ingrese el nombre del producto a eliminar: ")
-            encontrado = False
-            # creo un bucle para que de la opcion de eliminar el producto
-            for producto in productos:
-                if producto['nombre'].lower() == nombre_eliminar.lower():
-                    productos.remove(producto)
-                    print(f"Producto {nombre_eliminar} eliminado.")
-                    encontrado = True
-                    break
-            if not encontrado:
-                print("Producto no encontrado.")
+            # Pedir el número del producto a eliminar
+            indice = int(input("Ingrese el número del producto que desea eliminar: "))
+            if 1 <= indice <= len(productos):
+                eliminado = productos.pop(indice - 1)
+                print(f"Producto {eliminado['nombre'].upper()} eliminado correctamente.")
+            else:
+                print("Número inválido. No existe un producto con ese número.")
+            if not productos:
+                print("No hay productos para eliminar.")
 
         case 5: 
             # salgo del bucle
