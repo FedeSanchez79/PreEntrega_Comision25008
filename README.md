@@ -1,6 +1,6 @@
-# 🌌 Pre-entrega - Curso Inicial de Python (Comisión 25008)
+# 🌌 Proyecto Final - Curso Inicial de Python (Comisión 25008)
 
-Este repositorio contiene la pre-entrega para la **comisión 25008** del **Curso Inicial de Python** dictado por **Talento TECH**.  
+Este repositorio contiene el proyecto final para la **comisión 25008** del **Curso Inicial de Python** dictado por **Talento TECH**.  
 El trabajo consiste en un **menú interactivo en consola** que permite agregar y visualizar productos del universo **Star Wars**.
 
 ---
@@ -31,6 +31,7 @@ https://docs.google.com/spreadsheets/d/1ErjYPJ7fypsEO1Q6XW7FDTRThQGgQAl9/edit?us
 ## 📁 Archivos incluidos
 
 - `StarWars.py`: Código principal del menú interactivo.
+- `Producto.db`: Base de datos.
 - `productos_star_wars.xlsx`: Archivo con 30 productos de ejemplo.
 - `README.md`: Este archivo.
 
@@ -39,6 +40,7 @@ https://docs.google.com/spreadsheets/d/1ErjYPJ7fypsEO1Q6XW7FDTRThQGgQAl9/edit?us
 ## 💡 Tecnologías utilizadas
 
 - Python
+- SQLite Viewer
 - Git & GitHub
 
 ---
