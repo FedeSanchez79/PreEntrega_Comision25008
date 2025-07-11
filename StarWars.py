@@ -1,98 +1,94 @@
-# ENTREGA FINAL: TIENDA DE STAR WARS
-# Integración de SQLite y Colorama para una tienda de productos de Star Wars.
+# ENTREGA FINAL - TIENDA STAR WARS
+# Este programa permite gestionar una tienda de productos relacionados con Star Wars.
 
 import sqlite3
+from colorama import init, Fore
+init(autoreset=True)
+
 conexion = sqlite3.connect("productos.db")
-print("Conexión a la base de datos establecida.")
 cursor = conexion.cursor()
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS productos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nombre TEXT NOT NULL,
         categoria TEXT NOT NULL,
-        precio INTEGER NOT NULL
+        descripcion TEXT,
+        precio INTEGER NOT NULL,
+        cantidad INTEGER DEFAULT 0
     )
 """)
+
+
 conexion.commit()
+conexion.close()
 
-import sqlite3
-from colorama import init, Fore, Style
-init(autoreset=True)
-
-# Creo una función para agregar productos
+# Función para agregar productos
 def agregar_producto():
     while True:
         try:
-            nombre = input("Ingrese el nombre del producto: ").strip()
-            if not nombre:
-                print("Debe agregar un nombre.")
-                continue
-
+            nombre = input(Fore.CYAN + "Ingrese el nombre del producto: ").strip().lower()
+            categorias_validas = ["comic", "coleccionable", "sable de luz"]
             while True:
-                categoria = input("Ingrese su categoría (COMIC/COLECCIONABLE/SABLE DE LUZ): ").strip().lower()
-                if categoria not in ("comic", "coleccionable", "sable de luz"):
-                    print(Fore.RED + "Categoría no válida. Use: COMIC, COLECCIONABLE o SABLE DE LUZ.")
+                categoria = input(Fore.CYAN + "Ingrese la categoría (comic / coleccionable / sable de luz): ").strip().lower()
+                if categoria in categorias_validas:
+                    break
                 else:
-                    break
+                    print(Fore.RED + "Categoría inválida. Debe ingresar una de las siguientes opciones: COMIC / COLECCIONABLE / SABLE DE LUZ")
+            descripcion = input(Fore.CYAN + "Ingrese una descripción del producto: ").strip()
+            precio = int(input(Fore.CYAN + "Ingrese el precio del producto: "))
+            cantidad = int(input(Fore.CYAN + "Ingrese la cantidad disponible: "))
 
-            while True:
-                try:
-                    precio = int(input("Ingrese el precio (sin centavos): "))
-                    if precio < 0:
-                        print(Fore.RED + "El precio no puede ser negativo.")
-                        continue
-                    break
-                except ValueError:
-                    print(Fore.RED + "Debe ingresar un número entero válido.")
-
-            # Inserta en la base de datos
             conexion = sqlite3.connect("productos.db")
             cursor = conexion.cursor()
-            cursor.execute("INSERT INTO productos (nombre, categoria, precio) VALUES (?, ?, ?)",
-                           (nombre.lower(), categoria, precio))
+            cursor.execute("""
+                INSERT INTO productos (nombre, categoria, descripcion, precio, cantidad)
+                VALUES (?, ?, ?, ?, ?)
+            """, (nombre, categoria, descripcion, precio, cantidad))
             conexion.commit()
             conexion.close()
 
-            print(Fore.GREEN + f"Producto {nombre.upper()} agregado correctamente.")
-
+            print(Fore.GREEN + "Producto agregado exitosamente.")
             otra = input(Fore.CYAN + "¿Desea agregar otro producto? (SI/NO): ").strip().lower()
             if otra != "si":
                 break
+        except ValueError:
+            print(Fore.RED + "Error: El precio y la cantidad deben ser números enteros.")
         except Exception as e:
             print(Fore.RED + f"Error al agregar producto: {e}")
+            break
 
-# Mostrar productos desde la base de datos
+# Función para mostrar productos
 def mostrar_productos():
     try:
         conexion = sqlite3.connect("productos.db")
         cursor = conexion.cursor()
-        cursor.execute("SELECT id, nombre, categoria, precio FROM productos")
+        cursor.execute("SELECT nombre, categoria, descripcion, precio, cantidad FROM productos")
         productos = cursor.fetchall()
         conexion.close()
 
-        if not productos:
-            print(Fore.RED + "No hay productos en la tienda.")
+        if productos:
+            print(Fore.YELLOW + "\nLista de productos:")
+            for p in productos:
+                print(Fore.GREEN + f"Nombre: {p[0].upper()}, Categoría: {p[1].upper()}, Descripción: {p[2]}, Precio: ${p[3]}, Cantidad: {p[4]}")
         else:
-            for i, producto in enumerate(productos, 1):
-                print(Fore.GREEN + f"{i}. Nombre: {producto[1].upper()}, Categoría: {producto[2].upper()}, Precio: ${producto[3]}")
-            print(Fore.YELLOW + f"Total de productos: {len(productos)}")
+            print(Fore.RED + "No hay productos registrados.")
     except Exception as e:
         print(Fore.RED + f"Error al mostrar productos: {e}")
 
-# Buscar producto por nombre
+# Función para buscar producto por nombre
 def buscar_producto():
     while True:
         nombre = input("Ingrese el nombre del producto a buscar: ").strip().lower()
         try:
             conexion = sqlite3.connect("productos.db")
             cursor = conexion.cursor()
-            cursor.execute("SELECT nombre, categoria, precio FROM productos WHERE nombre = ?", (nombre,))
+            cursor.execute("SELECT nombre, categoria, descripcion, precio, cantidad FROM productos WHERE nombre = ?", (nombre,))
             productos = cursor.fetchall()
             conexion.close()
 
             if productos:
                 for p in productos:
-                    print(Fore.GREEN + f"Producto encontrado: Nombre: {p[0].upper()}, Categoría: {p[1].upper()}, Precio: ${p[2]}")
+                    print(Fore.GREEN + f"Producto encontrado: Nombre: {p[0].upper()}, Categoría: {p[1].upper()}, Descripción: {p[2]}, Precio: ${p[3]}, Cantidad: {p[4]}")
             else:
                 print(Fore.RED + "Producto no encontrado.")
 
@@ -103,14 +99,13 @@ def buscar_producto():
             print(Fore.RED + f"Error al buscar producto: {e}")
             break
 
-
-# Eliminar producto por número
+# Función para eliminar producto por número de lista
 def eliminar_producto():
     while True:
         try:
             conexion = sqlite3.connect("productos.db")
             cursor = conexion.cursor()
-            cursor.execute("SELECT id, nombre, categoria, precio FROM productos")
+            cursor.execute("SELECT id, nombre, categoria, descripcion, precio, cantidad FROM productos")
             productos = cursor.fetchall()
 
             if not productos:
@@ -120,7 +115,7 @@ def eliminar_producto():
 
             print(Fore.YELLOW + "\nLista de productos:")
             for i, producto in enumerate(productos, 1):
-                print(Fore.GREEN + f"{i}. Nombre: {producto[1].upper()}, Categoría: {producto[2].upper()}, Precio: ${producto[3]}")
+                print(Fore.GREEN + f"{i}. Nombre: {producto[1].upper()}, Categoría: {producto[2].upper()}, Descripción: {producto[3]}, Precio: ${producto[4]}, Cantidad: {producto[5]}")
 
             try:
                 indice = int(input("Ingrese el número de orden del producto a eliminar: "))
@@ -146,8 +141,7 @@ def eliminar_producto():
             print(Fore.RED + f"Error al eliminar producto: {e}")
             break
 
-
-# Menú principal con las funciones disponibles
+# Menú principal
 while True:
     print(Fore.LIGHTMAGENTA_EX + "\n" + "BIENVENIDO A LA TIENDA DE STAR WARS")
     print("1. Agregar producto")
@@ -174,5 +168,3 @@ while True:
                 print(Fore.RED + "Opción no válida.")
     except ValueError:
         print(Fore.RED + "Por favor, ingrese un número válido.")
-
-conexion.close()
