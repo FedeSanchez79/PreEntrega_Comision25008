@@ -45,7 +45,7 @@ def agregar_producto():
                 except ValueError:
                     print(Fore.RED + "Debe ingresar un número entero válido.")
 
-            # Insertar en la base de datos
+            # Inserta en la base de datos
             conexion = sqlite3.connect("productos.db")
             cursor = conexion.cursor()
             cursor.execute("INSERT INTO productos (nombre, categoria, precio) VALUES (?, ?, ?)",
@@ -81,51 +81,71 @@ def mostrar_productos():
 
 # Buscar producto por nombre
 def buscar_producto():
-    nombre = input("Ingrese el nombre del producto a buscar: ").strip().lower()
-    try:
-        conexion = sqlite3.connect("productos.db")
-        cursor = conexion.cursor()
-        cursor.execute("SELECT nombre, categoria, precio FROM productos WHERE nombre = ?", (nombre,))
-        productos = cursor.fetchall()
-        conexion.close()
+    while True:
+        nombre = input("Ingrese el nombre del producto a buscar: ").strip().lower()
+        try:
+            conexion = sqlite3.connect("productos.db")
+            cursor = conexion.cursor()
+            cursor.execute("SELECT nombre, categoria, precio FROM productos WHERE nombre = ?", (nombre,))
+            productos = cursor.fetchall()
+            conexion.close()
 
-        if productos:
-            for p in productos:
-                print(Fore.GREEN + f"Producto encontrado: Nombre: {p[0].upper()}, Categoría: {p[1].upper()}, Precio: ${p[2]}")
-        else:
-            print(Fore.RED + "Producto no encontrado.")
-    except Exception as e:
-        print(Fore.RED + f"Error al buscar producto: {e}")
+            if productos:
+                for p in productos:
+                    print(Fore.GREEN + f"Producto encontrado: Nombre: {p[0].upper()}, Categoría: {p[1].upper()}, Precio: ${p[2]}")
+            else:
+                print(Fore.RED + "Producto no encontrado.")
+
+            otra = input(Fore.CYAN + "¿Desea buscar otro producto? (SI/NO): ").strip().lower()
+            if otra != "si":
+                break
+        except Exception as e:
+            print(Fore.RED + f"Error al buscar producto: {e}")
+            break
+
 
 # Eliminar producto por número
 def eliminar_producto():
-    try:
-        conexion = sqlite3.connect("productos.db")
-        cursor = conexion.cursor()
-        cursor.execute("SELECT id, nombre, categoria, precio FROM productos")
-        productos = cursor.fetchall()
+    while True:
+        try:
+            conexion = sqlite3.connect("productos.db")
+            cursor = conexion.cursor()
+            cursor.execute("SELECT id, nombre, categoria, precio FROM productos")
+            productos = cursor.fetchall()
 
-        if not productos:
-            print(Fore.RED + "No hay productos para eliminar.")
+            if not productos:
+                print(Fore.RED + "No hay productos para eliminar.")
+                conexion.close()
+                return
+
+            print(Fore.YELLOW + "\nLista de productos:")
+            for i, producto in enumerate(productos, 1):
+                print(Fore.GREEN + f"{i}. Nombre: {producto[1].upper()}, Categoría: {producto[2].upper()}, Precio: ${producto[3]}")
+
+            try:
+                indice = int(input("Ingrese el número de orden del producto a eliminar: "))
+                if 1 <= indice <= len(productos):
+                    id_a_eliminar = productos[indice - 1][0]
+                    nombre_eliminado = productos[indice - 1][1]
+                    cursor.execute("DELETE FROM productos WHERE id = ?", (id_a_eliminar,))
+                    conexion.commit()
+                    print(Fore.GREEN + f"Producto {nombre_eliminado.upper()} eliminado correctamente.")
+                else:
+                    print(Fore.RED + "Número inválido. Intente nuevamente.")
+                    continue  
+            except ValueError:
+                print(Fore.RED + "Debe ingresar un número entero válido.")
+                continue
+
             conexion.close()
-            return
 
-        for i, producto in enumerate(productos, 1):
-            print(Fore.GREEN + f"{i}. Nombre: {producto[1].upper()}, Categoría: {producto[2].upper()}, Precio: ${producto[3]}")
+            otra = input(Fore.CYAN + "¿Desea eliminar otro producto? (SI/NO): ").strip().lower()
+            if otra != "si":
+                break
+        except Exception as e:
+            print(Fore.RED + f"Error al eliminar producto: {e}")
+            break
 
-        indice = int(input("Ingrese el número del producto a eliminar: "))
-        if 1 <= indice <= len(productos):
-            id_a_eliminar = productos[indice - 1][0]
-            cursor.execute("DELETE FROM productos WHERE id = ?", (id_a_eliminar,))
-            conexion.commit()
-            print(Fore.GREEN + f"Producto {productos[indice - 1][1].upper()} eliminado correctamente.")
-        else:
-            print(Fore.RED + "Número inválido.")
-        conexion.close()
-    except ValueError:
-        print(Fore.RED + "Debe ingresar un número entero válido.")
-    except Exception as e:
-        print(Fore.RED + f"Error al eliminar producto: {e}")
 
 # Menú principal con las funciones disponibles
 while True:
