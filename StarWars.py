@@ -1,5 +1,5 @@
-# Pre-Entrega
-# Ejercicio 1: Crear un programa que permita agregar productos a una lista y mostrarlos en pantalla.
+# ENTREGA FINAL: TIENDA DE STAR WARS
+# Integración de SQLite y Colorama para una tienda de productos de Star Wars.
 
 import sqlite3
 conexion = sqlite3.connect("productos.db")
@@ -156,4 +156,3 @@ while True:
         print(Fore.RED + "Por favor, ingrese un número válido.")
 
 conexion.close()
-# 
