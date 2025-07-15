@@ -5,24 +5,44 @@ import sqlite3
 from colorama import init, Fore
 init(autoreset=True)
 
+# Crear la base de datos si no existe
 conexion = sqlite3.connect("productos.db")
 cursor = conexion.cursor()
-cursor.execute("""
-    CREATE TABLE IF NOT EXISTS productos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nombre TEXT NOT NULL,
-        categoria TEXT NOT NULL,
-        descripcion TEXT,
-        precio INTEGER NOT NULL,
-        cantidad INTEGER DEFAULT 0
-    )
-""")
-
-
+cursor.execute("""CREATE TABLE IF NOT EXISTS productos 
+               (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nombre TEXT NOT NULL,
+                categoria TEXT NOT NULL,
+                descripcion TEXT,
+                precio INTEGER NOT NULL,
+                cantidad INTEGER DEFAULT 0)""")
 conexion.commit()
 conexion.close()
 
-# Función para agregar productos
+# Funcion auxiliar para mostrar productos en formato tabla
+
+def mostrar_tabla(productos):
+    try:
+        print(Fore.YELLOW + "\nLista de productos:")
+        print(Fore.LIGHTBLACK_EX + "─" * 97)
+        print(Fore.WHITE + f"{'Nº':<4}│{'NOMBRE':<20}│{'CATEGORÍA':<15}│{'DESCRIPCIÓN':<25}│{'PRECIO':<10}│{'CANTIDAD':<10}")
+        print(Fore.LIGHTBLACK_EX + "─" * 97)
+        for i, p in enumerate(productos, 1):
+            print(Fore.YELLOW + f"{i:<4}│" + Fore.GREEN + f"{p[1].upper():<20}" + Fore.WHITE + "│" + Fore.GREEN + f"{p[2].upper():<15}" + Fore.WHITE + "│" + Fore.GREEN + f"{p[3]:<25}" + Fore.WHITE + "│" + Fore.LIGHTRED_EX + f"${p[4]:<9}" + Fore.WHITE + "│" + Fore.LIGHTBLUE_EX + f"{p[5]:<10}")
+            print(Fore.LIGHTBLACK_EX + "─" * 97)
+    except Exception as e:
+        print(Fore.RED + f"Error al mostrar la tabla: {e}")
+        
+# Funciones principales
+
+def solicitar_entero(mensaje):
+    while True:
+        try:
+            valor = int(input(Fore.CYAN + mensaje))
+            return valor
+        except ValueError:
+            print(Fore.RED + "Entrada inválida. Debe ingresar un número entero.")
+
+
 def agregar_producto():
     while True:
         try:
@@ -33,17 +53,13 @@ def agregar_producto():
                 if categoria in categorias_validas:
                     break
                 else:
-                    print(Fore.RED + "Categoría inválida. Debe ingresar una de las siguientes opciones: COMIC / COLECCIONABLE / SABLE DE LUZ")
+                    print(Fore.RED + "Categoría inválida.")
             descripcion = input(Fore.CYAN + "Ingrese una descripción del producto: ").strip()
-            precio = int(input(Fore.CYAN + "Ingrese el precio del producto: "))
-            cantidad = int(input(Fore.CYAN + "Ingrese la cantidad disponible: "))
-
+            precio = solicitar_entero("Ingrese el precio del producto: ")
+            cantidad = solicitar_entero("Ingrese la cantidad disponible: ")
             conexion = sqlite3.connect("productos.db")
             cursor = conexion.cursor()
-            cursor.execute("""
-                INSERT INTO productos (nombre, categoria, descripcion, precio, cantidad)
-                VALUES (?, ?, ?, ?, ?)
-            """, (nombre, categoria, descripcion, precio, cantidad))
+            cursor.execute("""INSERT INTO productos (nombre, categoria, descripcion, precio, cantidad) VALUES (?, ?, ?, ?, ?)""", (nombre, categoria, descripcion, precio, cantidad))
             conexion.commit()
             conexion.close()
 
@@ -51,47 +67,37 @@ def agregar_producto():
             otra = input(Fore.CYAN + "¿Desea agregar otro producto? (SI/NO): ").strip().lower()
             if otra != "si":
                 break
-        except ValueError:
-            print(Fore.RED + "Error: El precio y la cantidad deben ser números enteros.")
         except Exception as e:
             print(Fore.RED + f"Error al agregar producto: {e}")
-            break
 
-# Función para mostrar productos
+
 def mostrar_productos():
     try:
         conexion = sqlite3.connect("productos.db")
         cursor = conexion.cursor()
-        cursor.execute("SELECT nombre, categoria, descripcion, precio, cantidad FROM productos")
+        cursor.execute("SELECT id, nombre, categoria, descripcion, precio, cantidad FROM productos")
         productos = cursor.fetchall()
         conexion.close()
-
         if productos:
-            print(Fore.YELLOW + "\nLista de productos:")
-            for p in productos:
-                print(Fore.GREEN + f"Nombre: {p[0].upper()}, Categoría: {p[1].upper()}, Descripción: {p[2]}, Precio: ${p[3]}, Cantidad: {p[4]}")
+            mostrar_tabla(productos)
         else:
             print(Fore.RED + "No hay productos registrados.")
     except Exception as e:
         print(Fore.RED + f"Error al mostrar productos: {e}")
 
-# Función para buscar producto por nombre
 def buscar_producto():
     while True:
-        nombre = input("Ingrese el nombre del producto a buscar: ").strip().lower()
         try:
+            nombre = input("Ingrese el nombre del producto a buscar: ").strip().lower()
             conexion = sqlite3.connect("productos.db")
             cursor = conexion.cursor()
-            cursor.execute("SELECT nombre, categoria, descripcion, precio, cantidad FROM productos WHERE nombre = ?", (nombre,))
+            cursor.execute("SELECT id, nombre, categoria, descripcion, precio, cantidad FROM productos WHERE LOWER(nombre) LIKE ?", (f"%{nombre}%",))
             productos = cursor.fetchall()
             conexion.close()
-
             if productos:
-                for p in productos:
-                    print(Fore.GREEN + f"Producto encontrado: Nombre: {p[0].upper()}, Categoría: {p[1].upper()}, Descripción: {p[2]}, Precio: ${p[3]}, Cantidad: {p[4]}")
+                mostrar_tabla(productos)
             else:
                 print(Fore.RED + "Producto no encontrado.")
-
             otra = input(Fore.CYAN + "¿Desea buscar otro producto? (SI/NO): ").strip().lower()
             if otra != "si":
                 break
@@ -99,7 +105,6 @@ def buscar_producto():
             print(Fore.RED + f"Error al buscar producto: {e}")
             break
 
-# Función para eliminar producto por número de lista
 def eliminar_producto():
     while True:
         try:
@@ -107,33 +112,25 @@ def eliminar_producto():
             cursor = conexion.cursor()
             cursor.execute("SELECT id, nombre, categoria, descripcion, precio, cantidad FROM productos")
             productos = cursor.fetchall()
-
             if not productos:
                 print(Fore.RED + "No hay productos para eliminar.")
                 conexion.close()
                 return
-
-            print(Fore.YELLOW + "\nLista de productos:")
-            for i, producto in enumerate(productos, 1):
-                print(Fore.GREEN + f"{i}. Nombre: {producto[1].upper()}, Categoría: {producto[2].upper()}, Descripción: {producto[3]}, Precio: ${producto[4]}, Cantidad: {producto[5]}")
-
-            try:
-                indice = int(input("Ingrese el número de orden del producto a eliminar: "))
-                if 1 <= indice <= len(productos):
-                    id_a_eliminar = productos[indice - 1][0]
-                    nombre_eliminado = productos[indice - 1][1]
+            mostrar_tabla(productos)
+            indice = solicitar_entero("Ingrese el número del producto a eliminar: ")
+            if 1 <= indice <= len(productos):
+                id_a_eliminar = productos[indice - 1][0]
+                nombre_eliminado = productos[indice - 1][1]
+                confirmar = input(Fore.CYAN + f"¿Seguro que desea eliminar el producto {nombre_eliminado.upper()}? (SI/NO): ").strip().lower()
+                if confirmar == "si":
                     cursor.execute("DELETE FROM productos WHERE id = ?", (id_a_eliminar,))
                     conexion.commit()
-                    print(Fore.GREEN + f"Producto {nombre_eliminado.upper()} eliminado correctamente.")
+                    print(Fore.GREEN + "Producto eliminado correctamente.")
                 else:
-                    print(Fore.RED + "Número inválido. Intente nuevamente.")
-                    continue  
-            except ValueError:
-                print(Fore.RED + "Debe ingresar un número entero válido.")
-                continue
-
+                    print(Fore.YELLOW + "Eliminación cancelada.")
+            else:
+                print(Fore.RED + "Número inválido.")
             conexion.close()
-
             otra = input(Fore.CYAN + "¿Desea eliminar otro producto? (SI/NO): ").strip().lower()
             if otra != "si":
                 break
@@ -141,17 +138,66 @@ def eliminar_producto():
             print(Fore.RED + f"Error al eliminar producto: {e}")
             break
 
+def editar_producto():
+    try:
+        while True:
+            conexion = sqlite3.connect("productos.db")
+            cursor = conexion.cursor()
+            cursor.execute("SELECT id, nombre, categoria, descripcion, precio, cantidad FROM productos")
+            productos = cursor.fetchall()
+            if not productos:
+                print(Fore.RED + "No hay productos para editar.")
+                conexion.close()
+                return
+            mostrar_tabla(productos)
+            indice = solicitar_entero("Ingrese el número del producto que desea editar: ")
+            if 1 <= indice <= len(productos):
+                producto = productos[indice - 1]
+                id_producto = producto[0]
+                print(Fore.CYAN + "\n¿Qué campo desea editar?")
+                print("1. Nombre")
+                print("2. Categoría")
+                print("3. Descripción")
+                print("4. Precio")
+                print("5. Cantidad")
+                campo = solicitar_entero("Seleccione una opción (1-5): ")
+                columnas = ["nombre", "categoria", "descripcion", "precio", "cantidad"]
+                if 1 <= campo <= 5:
+                    columna = columnas[campo - 1]
+                    nuevo_valor = input("Ingrese el nuevo valor: ").strip()
+                    if columna in ["precio", "cantidad"]:
+                        nuevo_valor = int(nuevo_valor)
+                    confirmar = input(Fore.CYAN + f"¿Seguro que desea cambiar {columna.upper()} a '{nuevo_valor}'? (SI/NO): ").strip().lower()
+                    if confirmar == "si":
+                        cursor.execute(f"UPDATE productos SET {columna} = ? WHERE id = ?", (nuevo_valor, id_producto))
+                        conexion.commit()
+                        print(Fore.GREEN + "Producto actualizado correctamente.")
+                    else:
+                        print(Fore.YELLOW + "Edición cancelada.")
+                else:
+                    print(Fore.RED + "Opción de campo no válida.")
+            else:
+                print(Fore.RED + "Número inválido.")
+            conexion.close()
+            mostrar_productos()
+            otra = input(Fore.CYAN + "¿Desea editar otro producto? (SI/NO): ").strip().lower()
+            if otra != "si":
+                break
+    except Exception as e:
+        print(Fore.RED + f"Error al editar producto: {e}")
+
 # Menú principal
 while True:
-    print(Fore.LIGHTMAGENTA_EX + "\n" + "BIENVENIDO A LA TIENDA DE STAR WARS")
-    print("1. Agregar producto")
-    print("2. Mostrar productos")
-    print("3. Buscar producto")
-    print("4. Eliminar producto")
-    print("5. Salir")
-
     try:
-        opcion = int(input(Fore.CYAN + "Seleccione una opción: "))
+        print(Fore.LIGHTMAGENTA_EX + "\nBIENVENIDO A LA TIENDA DE STAR WARS")
+        print("1. Agregar producto")
+        print("2. Mostrar productos")
+        print("3. Buscar producto")
+        print("4. Eliminar producto")
+        print("5. Editar producto")
+        print("6. Salir")
+
+        opcion = solicitar_entero("Seleccione una opción: ")
         match opcion:
             case 1:
                 agregar_producto()
@@ -162,9 +208,11 @@ while True:
             case 4:
                 eliminar_producto()
             case 5:
+                editar_producto()
+            case 6:
                 print(Fore.CYAN + "Gracias por usar la tienda. ¡Hasta luego!")
                 break
             case _:
                 print(Fore.RED + "Opción no válida.")
-    except ValueError:
-        print(Fore.RED + "Por favor, ingrese un número válido.")
+    except Exception as e:
+        print(Fore.RED + f"Error en el menú principal: {e}")
