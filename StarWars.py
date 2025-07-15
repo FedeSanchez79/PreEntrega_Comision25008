@@ -42,7 +42,6 @@ def solicitar_entero(mensaje):
         except ValueError:
             print(Fore.RED + "Entrada inválida. Debe ingresar un número entero.")
 
-
 def agregar_producto():
     while True:
         try:
@@ -62,14 +61,12 @@ def agregar_producto():
             cursor.execute("""INSERT INTO productos (nombre, categoria, descripcion, precio, cantidad) VALUES (?, ?, ?, ?, ?)""", (nombre, categoria, descripcion, precio, cantidad))
             conexion.commit()
             conexion.close()
-
             print(Fore.GREEN + "Producto agregado exitosamente.")
             otra = input(Fore.CYAN + "¿Desea agregar otro producto? (SI/NO): ").strip().lower()
             if otra != "si":
                 break
         except Exception as e:
             print(Fore.RED + f"Error al agregar producto: {e}")
-
 
 def mostrar_productos():
     try:

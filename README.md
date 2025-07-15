@@ -31,7 +31,7 @@ https://docs.google.com/spreadsheets/d/1ErjYPJ7fypsEO1Q6XW7FDTRThQGgQAl9/edit?us
 ## 📁 Archivos incluidos
 
 - `StarWars.py`: Código principal del menú interactivo.
-- `Producto.db`: Base de datos.
+- `Productos.db`: Base de datos.
 - `productos_star_wars.xlsx`: Archivo con 30 productos de ejemplo.
 - `README.md`: Este archivo.
 
